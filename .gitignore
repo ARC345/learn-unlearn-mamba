@@ -1,0 +1,44 @@
+# pixi environments
+.pixi/*
+!.pixi/config.toml
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+*.egg
+dist/
+build/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# Jupyter
+.ipynb_checkpoints/
+
+# Results (keep structure, ignore outputs)
+results/*
+!results/.gitkeep
+
+# Model checkpoints
+*.pt
+*.pth
+*.ckpt
+
+# Data cache
+.cache/
+data/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.venv/

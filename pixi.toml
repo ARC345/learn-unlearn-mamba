@@ -1,0 +1,26 @@
+[workspace]
+authors = ["ARC345 <arnavrastogi.543@gmail.com>"]
+channels = ["conda-forge", "pytorch"]
+name = "learn-unlearn-mamba"
+platforms = ["linux-64"]
+version = "0.1.0"
+
+[tasks]
+train = "python scripts/train.py"
+evaluate = "python scripts/evaluate.py"
+run-experiments = "python scripts/run_experiments.py"
+visualize = "python analysis/visualize.py"
+
+[dependencies]
+python = ">=3.10"
+pytorch = ">=2.0"
+numpy = "*"
+matplotlib = "*"
+seaborn = "*"
+pyyaml = "*"
+tqdm = "*"
+einops = "*"
+
+[pypi-dependencies]
+datasets = "*"
+transformers = "*"
