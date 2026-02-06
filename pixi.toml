@@ -20,6 +20,9 @@ seaborn = "*"
 pyyaml = "*"
 tqdm = "*"
 einops = "*"
+mamba-ssm = ">=2.2.5,<3"
+causal-conv1d = ">=1.5.4,<2"
+trl = ">=0.27.2,<0.28"
 
 [pypi-dependencies]
 datasets = "*"
