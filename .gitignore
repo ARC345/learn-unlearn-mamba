@@ -42,3 +42,7 @@ Thumbs.db
 # Environment
 .env
 .venv/
+
+# Project specs
+*_SPEC.md
+*_spec.md
