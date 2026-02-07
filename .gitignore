@@ -30,6 +30,8 @@ results/*
 *.pt
 *.pth
 *.ckpt
+*.bin
+mamba/results/
 
 # Data cache
 .cache/

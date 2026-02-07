@@ -1,6 +1,6 @@
 model:
-  name: "state-spaces/mamba-370m"
-  new_model: "mamba-370m-finetuned"
+  name: "state-spaces/mamba-130m"
+  new_model: "mamba-130m-finetuned"
 
 dataset:
   path: "../data/train/D_ad_train.csv"
@@ -8,8 +8,8 @@ dataset:
 training:
   output_dir: "./results"
   num_train_epochs: 5
-  per_device_train_batch_size: 4
-  per_device_eval_batch_size: 4
+  per_device_train_batch_size: 2
+  per_device_eval_batch_size: 2
   learning_rate: 0.00001
   weight_decay: 0.1
   max_grad_norm: 1.0
