@@ -1,0 +1,18 @@
+model:
+  name: "state-spaces/mamba-1.4b"
+  new_model: "mamba-1.4b-finetuned"
+
+dataset:
+  path: "../data/train/D_ad_train.csv"
+
+training:
+  output_dir: "./results"
+  num_train_epochs: 10
+  per_device_train_batch_size: 1
+  per_device_eval_batch_size: 1
+  gradient_accumulation_steps: 4
+  learning_rate: 0.00001
+  weight_decay: 0.1
+  max_grad_norm: 1.0
+  logging_steps: 100
+  warmup_steps: 100

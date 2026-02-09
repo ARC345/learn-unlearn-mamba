@@ -1,10 +1,15 @@
 import yaml
+import argparse
 from src.dataloader import load_training_data, load_eval_data
 from src.model_loader import load_model_and_tokenizer
 from src.training import train_model
 
+parser = argparse.ArgumentParser()
+parser.add_argument("--config", default="configs/config.yaml", help="Path to config file")
+args = parser.parse_args()
+
 # Load configuration
-with open("configs/config.yaml", "r") as config_file:
+with open(args.config, "r") as config_file:
     config = yaml.safe_load(config_file)
 
 # Load dataset
