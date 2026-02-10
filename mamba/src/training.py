@@ -1,9 +1,20 @@
+import math
 import torch
 from torch.utils.data import DataLoader
 from torch.optim import AdamW
-from torch.optim.lr_scheduler import CosineAnnealingLR
+from torch.optim.lr_scheduler import LambdaLR
 from tqdm import tqdm
 import os
+
+
+def get_cosine_schedule_with_warmup(optimizer, num_warmup_steps, num_training_steps):
+    """Cosine LR schedule with linear warmup (matches paper Appendix C)."""
+    def lr_lambda(current_step):
+        if current_step < num_warmup_steps:
+            return current_step / max(1, num_warmup_steps)
+        progress = (current_step - num_warmup_steps) / max(1, num_training_steps - num_warmup_steps)
+        return max(0.0, 0.5 * (1.0 + math.cos(math.pi * progress)))
+    return LambdaLR(optimizer, lr_lambda)
 
 def collate_fn(batch, tokenizer, max_length=1024):
     """Collate batch of text into tokenized tensors."""
@@ -20,9 +31,10 @@ def collate_fn(batch, tokenizer, max_length=1024):
 
 
 def train_model(model, tokenizer, train_dataset, eval_dataset, config):
-    """Custom training loop for Mamba."""
+    """Custom training loop for Mamba (bfloat16, cosine LR with warmup)."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model = model.to(device)
+    dtype = torch.bfloat16 if device.type == "cuda" else torch.float32
+    model = model.to(device=device, dtype=dtype)
 
     tc = config["training"]
     batch_size = tc["per_device_train_batch_size"]
@@ -36,8 +48,12 @@ def train_model(model, tokenizer, train_dataset, eval_dataset, config):
         collate_fn=lambda b: collate_fn(b, tokenizer),
     )
 
-    optimizer = AdamW(model.parameters(), lr=lr, weight_decay=tc["weight_decay"])
-    scheduler = CosineAnnealingLR(optimizer, T_max=len(train_loader) * num_epochs)
+    num_training_steps = len(train_loader) * num_epochs
+    warmup_steps = tc.get("warmup_steps", 100)
+
+    betas = (tc.get("adam_beta1", 0.9), tc.get("adam_beta2", 0.95))
+    optimizer = AdamW(model.parameters(), lr=lr, weight_decay=tc["weight_decay"], betas=betas)
+    scheduler = get_cosine_schedule_with_warmup(optimizer, warmup_steps, num_training_steps)
 
     model.train()
     for epoch in range(num_epochs):
@@ -47,7 +63,7 @@ def train_model(model, tokenizer, train_dataset, eval_dataset, config):
             labels = batch["labels"].to(device)
 
             outputs = model(input_ids)
-            logits = outputs.logits
+            logits = outputs.logits.float()  # upcast logits for stable loss
 
             # Shift for causal LM loss
             loss = torch.nn.functional.cross_entropy(

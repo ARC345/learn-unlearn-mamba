@@ -6,6 +6,7 @@ Computes:
 - English word percentage
 - Response length stats
 """
+import os
 import pandas as pd
 import re
 from collections import Counter
@@ -169,17 +170,33 @@ def evaluate_model(model_csv, test_csv):
 
     return results
 
-def main():
-    test_csv = '../../data/test/D_test.csv'
+def run_evaluation(model_prefix="mamba-130m", noise_type="charflip", test_csv=None,
+                    csv_dir=".", output_csv=None):
+    """Run evaluation for a given model prefix and noise type.
+
+    Args:
+        model_prefix: Model name prefix (e.g. 'mamba-1.4b').
+        noise_type: Noise type used in phase 2 (e.g. 'charflip').
+        test_csv: Path to ground truth test CSV.
+        csv_dir: Directory containing model response CSVs.
+        output_csv: Path to write summary CSV. Defaults to '{csv_dir}/{model_prefix}-{noise_type}-eval.csv'.
+
+    Returns:
+        List of result dicts.
+    """
+    if test_csv is None:
+        test_csv = os.path.join(os.path.dirname(__file__), '../../data/test/D_test.csv')
+    if output_csv is None:
+        output_csv = os.path.join(csv_dir, f'{model_prefix}-{noise_type}-eval.csv')
 
     models = [
-        ('mamba-130m-finetuned.csv', 'Phase 1: Finetuned'),
-        ('mamba-130m-charflip.csv', 'Phase 2: Charflip'),
-        ('mamba-130m-unlearned.csv', 'Phase 3: Unlearned'),
+        (os.path.join(csv_dir, f'{model_prefix}-finetuned.csv'), 'Phase 1: Finetuned'),
+        (os.path.join(csv_dir, f'{model_prefix}-{noise_type}.csv'), f'Phase 2: {noise_type.capitalize()}'),
+        (os.path.join(csv_dir, f'{model_prefix}-{noise_type}-unlearned.csv'), 'Phase 3: Unlearned'),
     ]
 
     print("=" * 70)
-    print("MAMBA SSM EVALUATION RESULTS")
+    print(f"MAMBA SSM EVALUATION RESULTS — {model_prefix} / {noise_type}")
     print("=" * 70)
     print()
 
@@ -212,10 +229,38 @@ def main():
         print(f"{r['model']:<25} {r['accuracy_pct']:<12.1f} {r['charflip_pct']:<12.1f} {r['english_pct']:<12.1f}")
 
     # Save to CSV
-    summary_df = pd.DataFrame(all_results)
-    summary_df.to_csv('evaluation_summary.csv', index=False)
-    print()
-    print("Results saved to evaluation_summary.csv")
+    if all_results:
+        summary_df = pd.DataFrame(all_results)
+        summary_df.to_csv(output_csv, index=False)
+        print()
+        print(f"Results saved to {output_csv}")
+
+    return all_results
+
+
+def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="Evaluate Mamba model outputs")
+    parser.add_argument("--model-prefix", type=str, default="mamba-130m",
+                        help="Model name prefix (e.g. 'mamba-1.4b')")
+    parser.add_argument("--noise", type=str, default="charflip",
+                        help="Noise type (charflip, wordflip, transliteration, counterfactual)")
+    parser.add_argument("--test-csv", type=str, default=None,
+                        help="Path to ground truth test CSV")
+    parser.add_argument("--csv-dir", type=str, default=".",
+                        help="Directory containing model response CSVs")
+    parser.add_argument("--output-csv", type=str, default=None,
+                        help="Path to write summary CSV")
+    args = parser.parse_args()
+
+    run_evaluation(
+        model_prefix=args.model_prefix,
+        noise_type=args.noise,
+        test_csv=args.test_csv,
+        csv_dir=args.csv_dir,
+        output_csv=args.output_csv,
+    )
+
 
 if __name__ == "__main__":
     main()

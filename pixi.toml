@@ -10,6 +10,7 @@ train = { cmd = "python train.py", cwd = "mamba" }
 evaluate = "python scripts/evaluate.py"
 run-experiments = "python scripts/run_experiments.py"
 visualize = "python analysis/visualize.py"
+"experiment-1-4b" = { cmd = "python run_experiment.py --model state-spaces/mamba-1.4b --noise all", cwd = "mamba" }
 
 [system-requirements]
 cuda = "12.6"
