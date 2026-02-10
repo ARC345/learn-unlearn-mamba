@@ -35,7 +35,6 @@ mamba/results/
 
 # Data cache
 .cache/
-data/
 
 # OS
 .DS_Store
